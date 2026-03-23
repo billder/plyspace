@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contains Stripe keys, admin password)
+.env
+
+# Claude settings
+.claude/
+
+# Uploaded zine cover images (store in cloud or back up separately)
+uploads/*
+!uploads/.gitkeep
+
+# Mac junk
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
