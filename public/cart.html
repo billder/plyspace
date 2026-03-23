@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart — ply.space</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="site-name">ply.<span>space</span></a>
+      <nav class="header-nav">
+        <a href="/cart.html" class="cart-btn" id="cart-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          Cart
+          <span class="cart-count" id="cart-count">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Page heading -->
+  <section class="page-hero">
+    <h1>Your Cart</h1>
+  </section>
+
+  <main style="max-width:var(--max-w);margin:0 auto;padding:0 24px 80px">
+
+    <!-- Success banner (shown after payment) -->
+    <div class="success-banner" id="success-banner" style="display:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Order confirmed! Thanks for your purchase — we'll get it in the mail soon.
+    </div>
+
+    <!-- Empty cart -->
+    <div class="empty-state" id="empty-state" style="display:none">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <h2>Your cart is empty</h2>
+      <p>Browse our zines and add something you love.</p>
+      <a href="/" class="btn-add" style="display:inline-block;padding:10px 22px">Browse Zines</a>
+    </div>
+
+    <!-- Cart layout -->
+    <div class="cart-layout" id="cart-layout">
+      <!-- Items -->
+      <div>
+        <div class="cart-items-list" id="cart-items-list"></div>
+      </div>
+
+      <!-- Summary -->
+      <aside class="order-summary" id="order-summary">
+        <h2 class="summary-title">Order Summary</h2>
+        <div class="summary-rows">
+          <div class="summary-row">
+            <span>Subtotal (<span id="item-count">0</span> items)</span>
+            <span id="subtotal">$0.00</span>
+          </div>
+          <div class="summary-row total">
+            <span>Subtotal</span>
+            <span id="total">$0.00</span>
+          </div>
+        </div>
+        <p class="shipping-note">
+          Shipping is calculated at checkout.<br>
+          US: $2 per zine &bull; International: $3 per zine
+        </p>
+        <button class="btn-checkout" id="checkout-btn" disabled>
+          Proceed to Checkout
+        </button>
+        <a href="/" class="btn-continue">← Continue shopping</a>
+      </aside>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> ply.space &mdash; Secure checkout via Stripe.</p>
+  </footer>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/cart-store.js"></script>
+  <script src="/js/cart.js"></script>
+</body>
+</html>

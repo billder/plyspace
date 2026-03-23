@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — ply.space</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="site-name">ply.<span>space</span> <span style="font-size:.75rem;font-weight:500;color:var(--text-muted);margin-left:6px">Admin</span></a>
+      <nav class="header-nav">
+        <a href="/" class="nav-link">← Store</a>
+        <button class="btn-secondary" id="logout-btn" style="display:none;padding:7px 14px;font-size:.85rem">Log out</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Login form (shown when not authenticated) -->
+  <div id="login-view">
+    <div class="admin-login-card">
+      <h2>Admin Login</h2>
+      <p>Enter your admin password to manage zines.</p>
+      <form id="login-form">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <p id="login-error" style="color:var(--accent);font-size:.825rem;margin-bottom:12px;display:none"></p>
+        <button type="submit" class="btn-primary" style="width:100%">Log in</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin panel (shown when authenticated) -->
+  <div id="admin-view" style="display:none">
+    <div class="admin-wrap">
+
+      <div class="admin-header-bar">
+        <h1>Manage Zines</h1>
+      </div>
+
+      <!-- Add zine form -->
+      <div class="admin-section">
+        <h2 class="admin-section-title" id="form-title">Add New Zine</h2>
+        <form id="zine-form" enctype="multipart/form-data">
+          <input type="hidden" id="edit-id">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="zine-title">Title *</label>
+              <input type="text" id="zine-title" placeholder="My Zine" required>
+            </div>
+            <div class="form-row" style="grid-template-columns:1fr 1fr">
+              <div class="form-group">
+                <label for="zine-price">Price ($) *</label>
+                <input type="number" id="zine-price" placeholder="5.00" value="5.00" min="0.01" step="0.01" required>
+              </div>
+              <div class="form-group">
+                <label for="zine-stock">Stock (-1 = unlimited)</label>
+                <input type="number" id="zine-stock" placeholder="-1" value="-1">
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="zine-desc">Description</label>
+            <textarea id="zine-desc" placeholder="A short description of this zine..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="zine-image">Cover Image</label>
+            <input type="file" id="zine-image" accept="image/*">
+            <img id="image-preview" class="image-preview" alt="Cover preview">
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <button type="submit" class="btn-primary" id="submit-btn">Add Zine</button>
+            <button type="button" class="btn-secondary" id="cancel-edit-btn" style="display:none">Cancel Edit</button>
+            <span id="form-status" style="font-size:.825rem;color:var(--text-muted)"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- Zines table -->
+      <div class="admin-section">
+        <h2 class="admin-section-title">All Zines</h2>
+        <div id="table-loading" style="color:var(--text-muted);font-size:.9rem">Loading…</div>
+        <div style="overflow-x:auto">
+          <table class="zines-table" id="zines-table" style="display:none">
+            <thead>
+              <tr>
+                <th>Cover</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="zines-tbody"></tbody>
+          </table>
+        </div>
+        <div id="no-zines" style="display:none;color:var(--text-muted);font-size:.9rem">No zines yet. Add one above.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

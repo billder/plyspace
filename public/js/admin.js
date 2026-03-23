@@ -1,0 +1,241 @@
+// admin.html
+
+const loginView    = document.getElementById('login-view');
+const adminView    = document.getElementById('admin-view');
+const loginForm    = document.getElementById('login-form');
+const loginError   = document.getElementById('login-error');
+const logoutBtn    = document.getElementById('logout-btn');
+const zineForm     = document.getElementById('zine-form');
+const formTitle    = document.getElementById('form-title');
+const submitBtn    = document.getElementById('submit-btn');
+const cancelBtn    = document.getElementById('cancel-edit-btn');
+const formStatus   = document.getElementById('form-status');
+const zinesTable   = document.getElementById('zines-table');
+const zinesTbody   = document.getElementById('zines-tbody');
+const noZines      = document.getElementById('no-zines');
+const tableLoading = document.getElementById('table-loading');
+const imagePreview = document.getElementById('image-preview');
+const imageInput   = document.getElementById('zine-image');
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+
+function showToast(msg, type = '') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+async function checkAuth() {
+  const res  = await fetch('/api/admin/status');
+  const data = await res.json();
+  if (data.isAdmin) showAdmin();
+}
+
+function showAdmin() {
+  loginView.style.display  = 'none';
+  adminView.style.display  = 'block';
+  logoutBtn.style.display  = 'inline-block';
+  loadZines();
+}
+
+loginForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  loginError.style.display = 'none';
+  const password = document.getElementById('password').value;
+
+  const res  = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  const data = await res.json();
+
+  if (res.ok) {
+    showAdmin();
+  } else {
+    loginError.textContent   = data.error || 'Login failed';
+    loginError.style.display = 'block';
+  }
+});
+
+logoutBtn.addEventListener('click', async () => {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  loginView.style.display  = 'block';
+  adminView.style.display  = 'none';
+  logoutBtn.style.display  = 'none';
+});
+
+// ─── Image preview ────────────────────────────────────────────────────────────
+
+imageInput.addEventListener('change', () => {
+  const file = imageInput.files[0];
+  if (file) {
+    const url = URL.createObjectURL(file);
+    imagePreview.src = url;
+    imagePreview.style.display = 'block';
+  } else {
+    imagePreview.style.display = 'none';
+  }
+});
+
+// ─── Load zines ───────────────────────────────────────────────────────────────
+
+async function loadZines() {
+  tableLoading.style.display = 'block';
+  zinesTable.style.display   = 'none';
+  noZines.style.display      = 'none';
+
+  try {
+    const res   = await fetch('/api/admin/zines');
+    const zines = await res.json();
+
+    tableLoading.style.display = 'none';
+
+    if (!zines.length) {
+      noZines.style.display = 'block';
+      return;
+    }
+
+    zinesTable.style.display = 'table';
+    zinesTbody.innerHTML = '';
+    zines.forEach(z => zinesTbody.appendChild(buildRow(z)));
+  } catch {
+    tableLoading.textContent = 'Failed to load zines.';
+  }
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function buildRow(z) {
+  const tr = document.createElement('tr');
+  const imgHtml = z.cover_image
+    ? `<img class="thumb" src="${z.cover_image}" alt="">`
+    : `<div style="width:40px;height:54px;background:var(--bg);border-radius:3px;border:1px solid var(--border)"></div>`;
+
+  const stock = z.stock === -1 ? '∞' : z.stock;
+  tr.innerHTML = `
+    <td>${imgHtml}</td>
+    <td><strong>${escHtml(z.title)}</strong></td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(z.description)}</td>
+    <td>$${Number(z.price).toFixed(2)}</td>
+    <td>${stock}</td>
+    <td><span class="badge ${z.active ? 'active' : 'inactive'}">${z.active ? 'Active' : 'Hidden'}</span></td>
+    <td>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-secondary" style="padding:5px 10px;font-size:.78rem" data-action="edit">Edit</button>
+        ${z.active
+          ? `<button class="btn-danger" data-action="hide">Hide</button>`
+          : `<button class="btn-secondary" style="padding:5px 10px;font-size:.78rem" data-action="show">Show</button>`
+        }
+        <button class="btn-danger" data-action="delete">Delete</button>
+      </div>
+    </td>`;
+
+  tr.querySelector('[data-action="edit"]').addEventListener('click', () => beginEdit(z));
+  tr.querySelector('[data-action="delete"]').addEventListener('click', () => deleteZine(z.id));
+  const hideBtn = tr.querySelector('[data-action="hide"]');
+  if (hideBtn) hideBtn.addEventListener('click', () => toggleActive(z.id, 0));
+  const showBtn = tr.querySelector('[data-action="show"]');
+  if (showBtn) showBtn.addEventListener('click', () => toggleActive(z.id, 1));
+
+  return tr;
+}
+
+// ─── Add / Edit form ──────────────────────────────────────────────────────────
+
+let editingId = null;
+
+function resetForm() {
+  editingId = null;
+  zineForm.reset();
+  imagePreview.style.display = 'none';
+  formTitle.textContent    = 'Add New Zine';
+  submitBtn.textContent    = 'Add Zine';
+  cancelBtn.style.display  = 'none';
+  formStatus.textContent   = '';
+  document.getElementById('edit-id').value = '';
+}
+
+function beginEdit(z) {
+  editingId = z.id;
+  document.getElementById('edit-id').value     = z.id;
+  document.getElementById('zine-title').value  = z.title;
+  document.getElementById('zine-desc').value   = z.description;
+  document.getElementById('zine-price').value  = z.price;
+  document.getElementById('zine-stock').value  = z.stock;
+  if (z.cover_image) {
+    imagePreview.src = z.cover_image;
+    imagePreview.style.display = 'block';
+  }
+  formTitle.textContent   = 'Edit Zine';
+  submitBtn.textContent   = 'Save Changes';
+  cancelBtn.style.display = 'inline-block';
+  formStatus.textContent  = '';
+  zineForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+cancelBtn.addEventListener('click', resetForm);
+
+zineForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  submitBtn.disabled    = true;
+  formStatus.textContent = editingId ? 'Saving…' : 'Adding…';
+
+  const body = new FormData();
+  body.append('title',       document.getElementById('zine-title').value.trim());
+  body.append('description', document.getElementById('zine-desc').value.trim());
+  body.append('price',       document.getElementById('zine-price').value);
+  body.append('stock',       document.getElementById('zine-stock').value);
+  const file = document.getElementById('zine-image').files[0];
+  if (file) body.append('cover_image', file);
+
+  const url    = editingId ? `/api/admin/zines/${editingId}` : '/api/admin/zines';
+  const method = editingId ? 'PUT' : 'POST';
+
+  try {
+    const res  = await fetch(url, { method, body });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Save failed');
+
+    showToast(editingId ? 'Zine updated.' : 'Zine added!', 'success');
+    resetForm();
+    loadZines();
+  } catch (err) {
+    formStatus.textContent = err.message;
+    showToast(err.message, 'error');
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
+async function deleteZine(id) {
+  if (!confirm('Permanently delete this zine?')) return;
+  const res = await fetch(`/api/admin/zines/${id}`, { method: 'DELETE' });
+  if (res.ok) { showToast('Zine deleted.'); loadZines(); }
+  else showToast('Delete failed.', 'error');
+}
+
+async function toggleActive(id, active) {
+  const body = new FormData();
+  body.append('active', active);
+  const res = await fetch(`/api/admin/zines/${id}`, { method: 'PUT', body });
+  if (res.ok) { showToast(active ? 'Zine is now visible.' : 'Zine hidden.', 'success'); loadZines(); }
+  else showToast('Update failed.', 'error');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+
+checkAuth();
