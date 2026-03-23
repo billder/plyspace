@@ -11,9 +11,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
+// DATA_DIR points to the persistent volume on Fly.io (/data),
+// or falls back to the project root for local development.
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+
 // ─── Database ────────────────────────────────────────────────────────────────
 
-const db = new Database('zines.db');
+const db = new Database(path.join(DATA_DIR, 'zines.db'));
 db.exec(`
   CREATE TABLE IF NOT EXISTS zines (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,6 +38,7 @@ app.use('/api/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
+app.use('/uploads', express.static(uploadDir));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'zine-shop-secret-change-me',
   resave: false,
@@ -43,7 +48,7 @@ app.use(session({
 
 // ─── File uploads ─────────────────────────────────────────────────────────────
 
-const uploadDir = path.join(__dirname, 'uploads');
+const uploadDir = path.join(DATA_DIR, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
