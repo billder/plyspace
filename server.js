@@ -38,7 +38,6 @@ app.use('/api/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
-app.use('/uploads', express.static(uploadDir));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'zine-shop-secret-change-me',
   resave: false,
@@ -50,6 +49,7 @@ app.use(session({
 
 const uploadDir = path.join(DATA_DIR, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+app.use('/uploads', express.static(uploadDir));
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
