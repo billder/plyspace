@@ -11,6 +11,10 @@ node_modules/
 uploads/*
 !uploads/.gitkeep
 
+# Fly.io generated files
+hello-fly/
+.github/
+
 # Mac junk
 .DS_Store
 
