@@ -212,21 +212,25 @@ app.post('/api/payment-intent', async (req, res) => {
     }
 
     let subtotal = 0, totalQty = 0;
+    const lineDescriptions = [];
     for (const item of items) {
       const zine = db.prepare('SELECT * FROM zines WHERE id = ? AND active = 1').get(item.id);
       if (!zine) return res.status(400).json({ error: `Zine not found: ${item.id}` });
       const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
       totalQty += qty;
       subtotal += zine.price * qty;
+      lineDescriptions.push(qty > 1 ? `${zine.title} (x${qty})` : zine.title);
     }
 
     const shippingCost = totalQty * (shipping === 'us' ? 2 : 3);
     const total        = Math.round((subtotal + shippingCost) * 100);
+    const description  = lineDescriptions.join(', ');
 
     const intent = await stripe.paymentIntents.create({
       amount:   total,
       currency: 'usd',
       automatic_payment_methods: { enabled: true },
+      description,
       metadata: { shipping, totalQty: String(totalQty) },
     });
 
@@ -235,6 +239,7 @@ app.post('/api/payment-intent', async (req, res) => {
       paymentIntentId: intent.id,
       subtotal,
       shippingCost,
+      taxAmount: 0,
       total: subtotal + shippingCost,
     });
   } catch (err) {
@@ -243,33 +248,87 @@ app.post('/api/payment-intent', async (req, res) => {
   }
 });
 
-// ─── Embedded checkout: update shipping when country changes ──────────────────
+// ─── Embedded checkout: update shipping / tax when address changes ────────────
 
 app.patch('/api/payment-intent/:id', async (req, res) => {
   try {
-    const { items, shipping = 'us' } = req.body;
+    const { items, shipping = 'us', address } = req.body;
     if (!Array.isArray(items) || !items.length) {
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
     let subtotal = 0, totalQty = 0;
+    const lineDescriptions = [];
+    const taxLineItems     = [];
     for (const item of items) {
       const zine = db.prepare('SELECT * FROM zines WHERE id = ? AND active = 1').get(item.id);
       if (!zine) return res.status(400).json({ error: `Zine not found: ${item.id}` });
       const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
       totalQty += qty;
       subtotal += zine.price * qty;
+      lineDescriptions.push(qty > 1 ? `${zine.title} (x${qty})` : zine.title);
+      taxLineItems.push({
+        amount:    Math.round(zine.price * qty * 100),
+        reference: `zine_${zine.id}`,
+        tax_code:  'txcd_35010000', // Books & printed publications
+      });
     }
 
     const shippingCost = totalQty * (shipping === 'us' ? 2 : 3);
-    const total        = Math.round((subtotal + shippingCost) * 100);
+    const description  = lineDescriptions.join(', ');
 
-    await stripe.paymentIntents.update(req.params.id, {
-      amount:   total,
-      metadata: { shipping, totalQty: String(totalQty) },
+    // Add shipping as a taxable line item (Stripe Tax knows which states tax it)
+    taxLineItems.push({
+      amount:    Math.round(shippingCost * 100),
+      reference: 'shipping',
+      tax_code:  'txcd_92010001', // Shipping & handling
     });
 
-    res.json({ subtotal, shippingCost, total: subtotal + shippingCost });
+    // ── Stripe Tax calculation (only when we have a country) ──────────────────
+    let taxAmountCents  = 0;
+    let taxCalculationId = null;
+
+    const country = address?.country?.trim();
+    if (country) {
+      try {
+        const calc = await stripe.tax.calculations.create({
+          currency: 'usd',
+          line_items: taxLineItems,
+          customer_details: {
+            address: {
+              country:     country.length === 2 ? country.toUpperCase() : country,
+              ...(address.state && { state: address.state.trim() }),
+              ...(address.zip   && { postal_code: address.zip.trim() }),
+            },
+            address_source: 'shipping',
+          },
+        });
+        taxAmountCents   = calc.tax_amount_exclusive;
+        taxCalculationId = calc.id;
+      } catch (taxErr) {
+        console.error('Stripe Tax calculation error:', taxErr.message);
+        // Fall through — charge without tax rather than blocking the purchase
+      }
+    }
+
+    const finalAmount = Math.round((subtotal + shippingCost) * 100) + taxAmountCents;
+
+    await stripe.paymentIntents.update(req.params.id, {
+      amount:      finalAmount,
+      description,
+      metadata: {
+        shipping,
+        totalQty: String(totalQty),
+        ...(taxCalculationId && { tax_calculation: taxCalculationId }),
+      },
+    });
+
+    res.json({
+      subtotal,
+      shippingCost,
+      taxAmount: taxAmountCents / 100,
+      total:     subtotal + shippingCost + (taxAmountCents / 100),
+    });
   } catch (err) {
     console.error('Update payment intent error:', err);
     res.status(500).json({ error: err.message });
@@ -278,7 +337,7 @@ app.patch('/api/payment-intent/:id', async (req, res) => {
 
 // ─── Stripe webhook (optional — extend to handle fulfillment) ─────────────────
 
-app.post('/api/webhook', (req, res) => {
+app.post('/api/webhook', async (req, res) => {
   const sig = req.headers['stripe-signature'];
   if (!process.env.STRIPE_WEBHOOK_SECRET) return res.sendStatus(200);
 
@@ -296,6 +355,22 @@ app.post('/api/webhook', (req, res) => {
     const session = event.data.object;
     console.log('Payment complete:', session.id, session.customer_details?.email);
     // TODO: send confirmation email, update stock, etc.
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    const intent = event.data.object;
+    const taxCalculationId = intent.metadata?.tax_calculation;
+    if (taxCalculationId) {
+      try {
+        await stripe.tax.transactions.createFromCalculation({
+          calculation: taxCalculationId,
+          reference:   intent.id,
+        });
+        console.log('Tax transaction recorded for', intent.id);
+      } catch (err) {
+        console.error('Tax transaction error:', err.message);
+      }
+    }
   }
 
   res.sendStatus(200);

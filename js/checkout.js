@@ -34,7 +34,7 @@ async function init() {
     if (!res.ok) throw new Error(data.error || 'Could not start checkout.');
 
     paymentIntentId = data.paymentIntentId;
-    updateTotals(data.subtotal, data.shippingCost, data.total);
+    updateTotals(data.subtotal, data.shippingCost, data.taxAmount, data.total);
 
     // Stripe Elements appearance (matches site palette)
     elementsInstance = stripeInstance.elements({
@@ -86,32 +86,53 @@ document.querySelectorAll('input[name="shipping"]').forEach(radio => {
     const newShipping = radio.value;
     if (newShipping !== currentShipping) {
       currentShipping = newShipping;
-      refreshShipping(newShipping);
+      refreshTotals(newShipping);
     }
   });
 });
 
-// ─── Update shipping cost ──────────────────────────────────────────────────────
+// ─── Refresh totals (shipping + tax) ──────────────────────────────────────────
 
-async function refreshShipping(shipping) {
+function getCurrentAddress() {
+  return {
+    state:   document.getElementById('ship-state').value.trim(),
+    zip:     document.getElementById('ship-zip').value.trim(),
+    country: document.getElementById('ship-country').value.trim(),
+  };
+}
+
+async function refreshTotals(shipping = currentShipping) {
+  if (!paymentIntentId) return;
   try {
+    const address = getCurrentAddress();
+    const body    = { items, shipping };
+    if (address.country) body.address = address;
+
     const res  = await fetch(`/api/payment-intent/${paymentIntentId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, shipping }),
+      body: JSON.stringify(body),
     });
     const data = await res.json();
-    if (res.ok) updateTotals(data.subtotal, data.shippingCost, data.total);
+    if (res.ok) updateTotals(data.subtotal, data.shippingCost, data.taxAmount, data.total);
   } catch (e) {
-    console.error('Shipping update failed:', e);
+    console.error('Totals update failed:', e);
   }
 }
 
+// Re-calculate tax whenever a key address field is filled in
+['ship-state', 'ship-zip', 'ship-country'].forEach(id => {
+  document.getElementById(id).addEventListener('blur', () => {
+    if (document.getElementById('ship-country').value.trim()) refreshTotals();
+  });
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function updateTotals(subtotal, shippingCost, total) {
+function updateTotals(subtotal, shippingCost, taxAmount, total) {
   document.getElementById('co-subtotal').textContent = fmt(subtotal);
   document.getElementById('co-shipping').textContent = fmt(shippingCost);
+  document.getElementById('co-tax').textContent      = taxAmount > 0 ? fmt(taxAmount) : '—';
   document.getElementById('co-total').textContent    = fmt(total);
   document.getElementById('pay-amount').textContent  = fmt(total);
 }
