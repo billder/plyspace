@@ -58,7 +58,8 @@ const CartStore = (() => {
 // ─── Shared utilities ─────────────────────────────────────────────────────────
 
 function fmt(n) {
-  return '$' + Number(n).toFixed(2);
+  const v = Number(n);
+  return '$' + (v % 1 === 0 ? v.toFixed(0) : v.toFixed(2));
 }
 
 function showToast(msg, type = '') {
