@@ -16,6 +16,14 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 // or falls back to the project root for local development.
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 
+// On first boot with a fresh volume, seed the database from the bundled copy.
+const volumeDb  = path.join(DATA_DIR, 'zines.db');
+const bundledDb = path.join(__dirname, 'zines.db');
+if (DATA_DIR !== __dirname && !fs.existsSync(volumeDb) && fs.existsSync(bundledDb)) {
+  fs.copyFileSync(bundledDb, volumeDb);
+  console.log('Seeded zines.db from bundled copy onto volume.');
+}
+
 // ─── Database ────────────────────────────────────────────────────────────────
 
 const db = new Database(path.join(DATA_DIR, 'zines.db'));
