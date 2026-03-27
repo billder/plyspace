@@ -26,6 +26,7 @@ function renderCard(zine) {
     <div class="card-body">
       <div class="card-title">${escHtml(zine.title)}</div>
       ${zine.description ? `<div class="card-desc">${escHtml(zine.description)}</div>` : ''}
+      ${zine.details ? `<div class="card-details">${escHtml(zine.details)}</div>` : ''}
     </div>
     <div class="card-footer">
       <div class="card-price">${fmt(zine.price)}</div>

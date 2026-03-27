@@ -201,6 +201,13 @@ button { cursor: pointer; font: inherit; border: none; }
   line-height: 1.4;
 }
 
+.card-details {
+  font-size: .8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-style: italic;
+}
+
 .card-footer {
   display: flex;
   align-items: center;

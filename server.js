@@ -27,11 +27,17 @@ if (DATA_DIR !== __dirname && !fs.existsSync(volumeDb) && fs.existsSync(bundledD
 // ─── Database ────────────────────────────────────────────────────────────────
 
 const db = new Database(path.join(DATA_DIR, 'zines.db'));
+// Add details column to existing databases that pre-date this field
+try {
+  db.exec(`ALTER TABLE zines ADD COLUMN details TEXT NOT NULL DEFAULT '20 pages, 4x5, all color, nice paper'`);
+} catch (_) { /* column already exists */ }
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS zines (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     title       TEXT    NOT NULL,
     description TEXT    NOT NULL DEFAULT '',
+    details     TEXT    NOT NULL DEFAULT '20 pages, 4x5, all color, nice paper',
     price       REAL    NOT NULL,
     cover_image TEXT    NOT NULL DEFAULT '',
     stock       INTEGER NOT NULL DEFAULT -1,
@@ -405,16 +411,17 @@ app.get('/api/admin/zines', requireAdmin, (_req, res) => {
 });
 
 app.post('/api/admin/zines', requireAdmin, upload.single('cover_image'), (req, res) => {
-  const { title, description, price, stock } = req.body;
+  const { title, description, details, price, stock } = req.body;
   if (!title || !price) return res.status(400).json({ error: 'title and price are required' });
 
   const coverImage = req.file ? `/uploads/${req.file.filename}` : '';
   const result = db.prepare(`
-    INSERT INTO zines (title, description, price, cover_image, stock)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO zines (title, description, details, price, cover_image, stock)
+    VALUES (?, ?, ?, ?, ?, ?)
   `).run(
     title.trim(),
     (description || '').trim(),
+    (details !== undefined ? details : '20 pages, 4x5, all color, nice paper').trim(),
     parseFloat(price),
     coverImage,
     stock !== undefined && stock !== '' ? parseInt(stock, 10) : -1
@@ -428,16 +435,17 @@ app.put('/api/admin/zines/:id', requireAdmin, upload.single('cover_image'), (req
   const existing = db.prepare('SELECT * FROM zines WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Zine not found' });
 
-  const { title, description, price, stock, active } = req.body;
+  const { title, description, details, price, stock, active } = req.body;
   const coverImage = req.file ? `/uploads/${req.file.filename}` : existing.cover_image;
 
   db.prepare(`
     UPDATE zines
-    SET title = ?, description = ?, price = ?, cover_image = ?, stock = ?, active = ?
+    SET title = ?, description = ?, details = ?, price = ?, cover_image = ?, stock = ?, active = ?
     WHERE id = ?
   `).run(
     title        !== undefined ? title.trim()          : existing.title,
     description  !== undefined ? description.trim()    : existing.description,
+    details      !== undefined ? details.trim()        : existing.details,
     price        !== undefined ? parseFloat(price)     : existing.price,
     coverImage,
     stock        !== undefined && stock !== '' ? parseInt(stock, 10) : existing.stock,

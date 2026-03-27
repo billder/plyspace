@@ -182,8 +182,9 @@ function resetForm() {
 function beginEdit(z) {
   editingId = z.id;
   document.getElementById('edit-id').value     = z.id;
-  document.getElementById('zine-title').value  = z.title;
-  document.getElementById('zine-desc').value   = z.description;
+  document.getElementById('zine-title').value   = z.title;
+  document.getElementById('zine-desc').value    = z.description;
+  document.getElementById('zine-details').value = z.details ?? '';
   document.getElementById('zine-price').value  = z.price;
   document.getElementById('zine-stock').value  = z.stock;
   if (z.cover_image) {
@@ -207,6 +208,7 @@ zineForm.addEventListener('submit', async e => {
   const body = new FormData();
   body.append('title',       document.getElementById('zine-title').value.trim());
   body.append('description', document.getElementById('zine-desc').value.trim());
+  body.append('details',     document.getElementById('zine-details').value.trim());
   body.append('price',       document.getElementById('zine-price').value);
   body.append('stock',       document.getElementById('zine-stock').value);
   const file = document.getElementById('zine-image').files[0];
