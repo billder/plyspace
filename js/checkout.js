@@ -1,6 +1,5 @@
 // checkout.html
-
-const fmt = n => '$' + Number(n).toFixed(2);
+// Note: fmt() is provided by cart-store.js
 
 const items = CartStore.getItems();
 if (!items.length) window.location.href = '/cart.html';
