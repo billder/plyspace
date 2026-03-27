@@ -226,6 +226,7 @@ app.post('/api/payment-intent', async (req, res) => {
     const intent = await stripe.paymentIntents.create({
       amount:   total,
       currency: 'usd',
+      automatic_payment_methods: { enabled: true },
       metadata: { shipping, totalQty: String(totalQty) },
     });
 
