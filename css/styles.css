@@ -681,6 +681,9 @@ button { cursor: pointer; font: inherit; border: none; }
 
 @media (max-width: 860px) {
   .checkout-layout { grid-template-columns: 1fr; }
+  /* On mobile: form first, order summary below */
+  .checkout-payment { order: 1; }
+  .checkout-summary { order: 2; position: static; }
 }
 
 .checkout-summary {
@@ -772,7 +775,6 @@ button { cursor: pointer; font: inherit; border: none; }
   min-height: 220px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 12px;
   background: var(--surface);
 }
 

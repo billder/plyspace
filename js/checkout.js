@@ -65,6 +65,11 @@ async function init() {
 
     // Payment element (card details only)
     const paymentElement = elementsInstance.create('payment');
+    paymentElement.on('loaderror', ev => {
+      const errEl = document.getElementById('co-init-error');
+      errEl.textContent = 'Card form failed to load: ' + (ev.error && ev.error.message ? ev.error.message : JSON.stringify(ev));
+      errEl.style.display = 'block';
+    });
     paymentElement.mount('#payment-element');
 
   } catch (err) {
