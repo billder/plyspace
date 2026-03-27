@@ -10,6 +10,9 @@ let stripeInstance   = null;
 let elementsInstance = null;
 let currentShipping  = 'us';
 
+// Render items immediately — don't wait for the API
+renderOrderItems();
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 async function init() {
@@ -33,7 +36,6 @@ async function init() {
 
     paymentIntentId = data.paymentIntentId;
     updateTotals(data.subtotal, data.shippingCost, data.total);
-    renderOrderItems();
 
     // Stripe Elements appearance (matches site palette)
     elementsInstance = stripeInstance.elements({
