@@ -767,6 +767,15 @@ button { cursor: pointer; font: inherit; border: none; }
 .co-field-label { font-size: .825rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
 .co-loading     { font-size: .9rem; color: var(--text-muted); padding: 24px 0; }
 
+/* Reserve space for the Stripe Payment Element while its iframe loads */
+#payment-element {
+  min-height: 220px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--surface);
+}
+
 /* Shipping radio buttons */
 .co-radio-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
 
