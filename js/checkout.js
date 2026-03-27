@@ -59,6 +59,10 @@ async function init() {
       },
     });
 
+    // Show the form before mounting so Stripe iframes render into a visible container
+    loadingEl.style.display = 'none';
+    document.getElementById('payment-form').style.display = 'block';
+
     // Address element — detects country to set shipping rate
     const addressElement = elementsInstance.create('address', { mode: 'shipping' });
     addressElement.mount('#address-element');
@@ -80,9 +84,6 @@ async function init() {
       fields: { billingDetails: { address: 'never' } },
     });
     paymentElement.mount('#payment-element');
-
-    loadingEl.style.display = 'none';
-    document.getElementById('payment-form').style.display = 'block';
 
   } catch (err) {
     loadingEl.style.display  = 'none';
