@@ -767,6 +767,53 @@ button { cursor: pointer; font: inherit; border: none; }
 .co-field-label { font-size: .825rem; font-weight: 600; margin-bottom: 8px; color: var(--text); }
 .co-loading     { font-size: .9rem; color: var(--text-muted); padding: 24px 0; }
 
+/* Shipping radio buttons */
+.co-radio-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+
+.co-radio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: .9rem;
+  transition: border-color .15s;
+}
+.co-radio:has(input:checked) { border-color: var(--accent); background: #FEF5F2; }
+.co-radio input[type="radio"] { accent-color: var(--accent); width: 16px; height: 16px; }
+.co-radio em { color: var(--text-muted); font-style: normal; }
+
+/* Shipping address fields */
+.co-address-fields { display: flex; flex-direction: column; gap: 8px; }
+
+.co-address-fields .form-group { margin: 0; }
+
+.co-address-fields input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: .9rem;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+}
+.co-address-fields input:focus { border-color: var(--accent); }
+.co-address-fields input::placeholder { color: var(--text-muted); }
+
+.co-address-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 480px) {
+  .co-address-row { grid-template-columns: 1fr; }
+}
+
 .checkout-error {
   background: #FEF2F2;
   border: 1px solid #FECACA;

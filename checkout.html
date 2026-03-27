@@ -30,7 +30,6 @@
           <div class="co-row"><span>Shipping</span><span id="co-shipping">—</span></div>
           <div class="co-row co-total"><span>Total</span><span id="co-total">—</span></div>
         </div>
-        <p class="co-shipping-note">US: $2 per zine &nbsp;·&nbsp; International: $3 per zine.<br>Shipping cost updates automatically as you enter your address.</p>
       </div>
 
       <!-- Right: payment form -->
@@ -40,9 +39,49 @@
         <div id="co-init-error" class="checkout-error" style="display:none"></div>
 
         <form id="payment-form" style="display:none">
-          <div class="co-field-label">Shipping address</div>
-          <div id="address-element"></div>
 
+          <!-- Shipping destination -->
+          <div class="co-field-label">Where are we shipping?</div>
+          <div class="co-radio-group">
+            <label class="co-radio">
+              <input type="radio" name="shipping" value="us" checked>
+              <span>Within the US <em>— $2 per zine</em></span>
+            </label>
+            <label class="co-radio">
+              <input type="radio" name="shipping" value="intl">
+              <span>International <em>— $3 per zine</em></span>
+            </label>
+          </div>
+
+          <!-- Shipping address fields -->
+          <div class="co-field-label" style="margin-top:20px">Shipping address</div>
+          <div class="co-address-fields">
+            <div class="form-group">
+              <input type="text" id="ship-name"    placeholder="Full name"        autocomplete="name"            required>
+            </div>
+            <div class="form-group">
+              <input type="text" id="ship-line1"   placeholder="Address"          autocomplete="address-line1"   required>
+            </div>
+            <div class="form-group">
+              <input type="text" id="ship-line2"   placeholder="Apt, suite, etc. (optional)" autocomplete="address-line2">
+            </div>
+            <div class="co-address-row">
+              <div class="form-group">
+                <input type="text" id="ship-city"  placeholder="City"             autocomplete="address-level2"  required>
+              </div>
+              <div class="form-group">
+                <input type="text" id="ship-state" placeholder="State / Province" autocomplete="address-level1">
+              </div>
+              <div class="form-group">
+                <input type="text" id="ship-zip"   placeholder="ZIP / Postal"     autocomplete="postal-code"     required>
+              </div>
+            </div>
+            <div class="form-group">
+              <input type="text" id="ship-country" placeholder="Country"          autocomplete="country-name"    required>
+            </div>
+          </div>
+
+          <!-- Card details via Stripe -->
           <div class="co-field-label" style="margin-top:24px">Card details</div>
           <div id="payment-element"></div>
 

@@ -63,26 +63,8 @@ async function init() {
     loadingEl.style.display = 'none';
     document.getElementById('payment-form').style.display = 'block';
 
-    // Address element — detects country to set shipping rate
-    const addressElement = elementsInstance.create('address', { mode: 'shipping' });
-    addressElement.mount('#address-element');
-
-    let shippingTimer = null;
-    addressElement.on('change', event => {
-      const country = event.value?.address?.country;
-      if (!country) return;
-      const newShipping = country === 'US' ? 'us' : 'intl';
-      if (newShipping !== currentShipping) {
-        currentShipping = newShipping;
-        clearTimeout(shippingTimer);
-        shippingTimer = setTimeout(() => refreshShipping(newShipping), 500);
-      }
-    });
-
-    // Payment element (card details)
-    const paymentElement = elementsInstance.create('payment', {
-      fields: { billingDetails: { address: 'never' } },
-    });
+    // Payment element (card details only)
+    const paymentElement = elementsInstance.create('payment');
     paymentElement.mount('#payment-element');
 
   } catch (err) {
@@ -92,7 +74,19 @@ async function init() {
   }
 }
 
-// ─── Update shipping cost on country change ────────────────────────────────────
+// ─── Shipping radio buttons ────────────────────────────────────────────────────
+
+document.querySelectorAll('input[name="shipping"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const newShipping = radio.value;
+    if (newShipping !== currentShipping) {
+      currentShipping = newShipping;
+      refreshShipping(newShipping);
+    }
+  });
+});
+
+// ─── Update shipping cost ──────────────────────────────────────────────────────
 
 async function refreshShipping(shipping) {
   try {
@@ -139,6 +133,21 @@ document.getElementById('payment-form').addEventListener('submit', async e => {
   const btn     = document.getElementById('pay-btn');
   const errorEl = document.getElementById('payment-error');
 
+  // Collect shipping address from HTML fields
+  const name    = document.getElementById('ship-name').value.trim();
+  const line1   = document.getElementById('ship-line1').value.trim();
+  const line2   = document.getElementById('ship-line2').value.trim();
+  const city    = document.getElementById('ship-city').value.trim();
+  const state   = document.getElementById('ship-state').value.trim();
+  const zip     = document.getElementById('ship-zip').value.trim();
+  const country = document.getElementById('ship-country').value.trim();
+
+  if (!name || !line1 || !city || !zip || !country) {
+    errorEl.textContent   = 'Please fill in all required shipping fields.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   btn.disabled    = true;
   btn.textContent = 'Processing…';
   errorEl.style.display = 'none';
@@ -147,6 +156,17 @@ document.getElementById('payment-form').addEventListener('submit', async e => {
     elements: elementsInstance,
     confirmParams: {
       return_url: `${window.location.origin}/success.html`,
+      shipping: {
+        name,
+        address: {
+          line1,
+          line2:       line2 || undefined,
+          city,
+          state:       state || undefined,
+          postal_code: zip,
+          country:     country.length === 2 ? country.toUpperCase() : undefined,
+        },
+      },
     },
   });
 
