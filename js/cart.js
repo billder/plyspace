@@ -98,31 +98,9 @@ if (new URLSearchParams(window.location.search).get('success') === 'true') {
 }
 
 // Checkout
-checkoutBtn.addEventListener('click', async () => {
-  const items = CartStore.getItems();
-  if (!items.length) return;
-
-  checkoutBtn.disabled = true;
-  checkoutBtn.textContent = 'Redirecting…';
-
-  try {
-    const res = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || 'Checkout failed');
-    if (data.url) {
-      window.location.href = data.url;
-    }
-  } catch (err) {
-    showToast(err.message, 'error');
-    checkoutBtn.disabled = false;
-    checkoutBtn.textContent = 'Proceed to Checkout';
-  }
+checkoutBtn.addEventListener('click', () => {
+  if (!CartStore.getItems().length) return;
+  window.location.href = '/checkout.html';
 });
 
 // Listen for cart changes from other tabs

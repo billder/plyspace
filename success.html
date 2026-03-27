@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed — ply.space</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="site-name">ply.<span>space</span></a>
+    </div>
+  </header>
+
+  <main class="success-outer">
+    <div class="success-card">
+      <div class="success-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h1>Order confirmed.</h1>
+      <p>Thank you for your purchase. Your zines are on their way — check your email for a receipt.</p>
+      <a href="/" class="btn-checkout" style="display:inline-block;width:auto;padding:14px 32px;margin-top:8px">Back to shop</a>
+    </div>
+  </main>
+
+  <script src="/js/cart-store.js"></script>
+  <script>
+    // Clear the cart on successful purchase
+    CartStore.clear();
+  </script>
+</body>
+</html>

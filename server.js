@@ -85,6 +85,12 @@ const requireAdmin = (req, res, next) => {
   res.status(401).json({ error: 'Unauthorized' });
 };
 
+// ─── Config (public) ──────────────────────────────────────────────────────────
+
+app.get('/api/config', (_req, res) => {
+  res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' });
+});
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 app.get('/api/zines', (_req, res) => {
@@ -192,6 +198,79 @@ app.post('/api/checkout', async (req, res) => {
     res.json({ url: checkoutSession.url });
   } catch (err) {
     console.error('Checkout error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Embedded checkout: create payment intent ─────────────────────────────────
+
+app.post('/api/payment-intent', async (req, res) => {
+  try {
+    const { items, shipping = 'us' } = req.body;
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(400).json({ error: 'Cart is empty' });
+    }
+
+    let subtotal = 0, totalQty = 0;
+    for (const item of items) {
+      const zine = db.prepare('SELECT * FROM zines WHERE id = ? AND active = 1').get(item.id);
+      if (!zine) return res.status(400).json({ error: `Zine not found: ${item.id}` });
+      const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+      totalQty += qty;
+      subtotal += zine.price * qty;
+    }
+
+    const shippingCost = totalQty * (shipping === 'us' ? 2 : 3);
+    const total        = Math.round((subtotal + shippingCost) * 100);
+
+    const intent = await stripe.paymentIntents.create({
+      amount:   total,
+      currency: 'usd',
+      metadata: { shipping, totalQty: String(totalQty) },
+    });
+
+    res.json({
+      clientSecret:    intent.client_secret,
+      paymentIntentId: intent.id,
+      subtotal,
+      shippingCost,
+      total: subtotal + shippingCost,
+    });
+  } catch (err) {
+    console.error('Payment intent error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Embedded checkout: update shipping when country changes ──────────────────
+
+app.patch('/api/payment-intent/:id', async (req, res) => {
+  try {
+    const { items, shipping = 'us' } = req.body;
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(400).json({ error: 'Cart is empty' });
+    }
+
+    let subtotal = 0, totalQty = 0;
+    for (const item of items) {
+      const zine = db.prepare('SELECT * FROM zines WHERE id = ? AND active = 1').get(item.id);
+      if (!zine) return res.status(400).json({ error: `Zine not found: ${item.id}` });
+      const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+      totalQty += qty;
+      subtotal += zine.price * qty;
+    }
+
+    const shippingCost = totalQty * (shipping === 'us' ? 2 : 3);
+    const total        = Math.round((subtotal + shippingCost) * 100);
+
+    await stripe.paymentIntents.update(req.params.id, {
+      amount:   total,
+      metadata: { shipping, totalQty: String(totalQty) },
+    });
+
+    res.json({ subtotal, shippingCost, total: subtotal + shippingCost });
+  } catch (err) {
+    console.error('Update payment intent error:', err);
     res.status(500).json({ error: err.message });
   }
 });
