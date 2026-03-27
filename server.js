@@ -4,6 +4,7 @@ const Database = require('better-sqlite3');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const multer = require('multer');
 const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const path = require('path');
 const fs = require('fs');
 
@@ -38,11 +39,13 @@ app.use('/api/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
+app.set('trust proxy', 1);
 app.use(session({
+  store: new SQLiteStore({ db: 'sessions.db', dir: DATA_DIR }),
   secret: process.env.SESSION_SECRET || 'zine-shop-secret-change-me',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax' },
+  cookie: { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'lax', secure: true },
 }));
 
 // ─── File uploads ─────────────────────────────────────────────────────────────
