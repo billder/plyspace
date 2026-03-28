@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — ply.space</title>
+  <meta name="description" content="Thinking big. Thinking small. ply.space from Bill DeRouchey.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="site-name">ply.<span>space</span></a>
+      <nav class="header-nav">
+        <a href="/about.html" class="nav-link">About</a>
+        <a href="/cart.html" class="cart-btn" id="cart-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+          Cart
+          <span class="cart-count" id="cart-count">0</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="page-hero">
+    <h1>About ply.<span style="color:var(--accent)">space</span></h1>
+    <p>How I make this thing</p>
+  </section>
+
+  <!-- Body -->
+  <section class="page-copy">
+    <div class="body-text">
+      <h2>Writing</h2>
+      <p>It's hard to say how I do this. An idea pops in my head, and I pursue it, and write it to match the page size herein. This pursue-without-hesitation is the primary thing that I'm working on, anticipating writing much of the History of the Button.</p>
+      <h2>Designing</h2>
+      <p>I start within InDesign like an old man.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> ply.space &mdash; All orders shipped with care.</p>
+  </footer>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/js/cart-store.js"></script>
+</body>
+</html>
