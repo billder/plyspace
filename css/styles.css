@@ -122,6 +122,19 @@ button { cursor: pointer; font: inherit; border: none; }
   max-width: 500px;
 }
 
+/* ─── About / body copy ──────────────────────────────────────────────────── */
+.page-copy {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}
+
+.body-text {
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
 /* ─── Product grid ───────────────────────────────────────────────────────── */
 .products-section {
   max-width: var(--max-w);
