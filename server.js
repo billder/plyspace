@@ -556,10 +556,10 @@ app.post('/api/orders/record', async (req, res) => {
 
 app.get('/api/admin/orders', requireAdmin, (req, res) => {
   const unshippedOnly = req.query.unshipped === '1';
+  const dir           = req.query.sort === 'asc' ? 'ASC' : 'DESC';
+  const where         = unshippedOnly ? 'WHERE shipped = 0' : '';
   const rows = db.prepare(
-    unshippedOnly
-      ? 'SELECT * FROM orders WHERE shipped = 0 ORDER BY created_at DESC'
-      : 'SELECT * FROM orders ORDER BY created_at DESC'
+    `SELECT * FROM orders ${where} ORDER BY created_at ${dir}`
   ).all();
   res.json(rows);
 });
