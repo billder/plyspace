@@ -35,6 +35,16 @@
     // Clear the cart on successful purchase
     CartStore.clear();
     track('purchase_complete', 'success');
+
+    // Record the order — Stripe appends ?payment_intent=pi_xxx to the return URL
+    const piId = new URLSearchParams(window.location.search).get('payment_intent');
+    if (piId) {
+      fetch('/api/orders/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_intent_id: piId }),
+      }).catch(() => {});
+    }
   </script>
 </body>
 </html>

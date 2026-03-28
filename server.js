@@ -521,6 +521,39 @@ app.put('/api/admin/zines/:id', requireAdmin, upload.single('cover_image'), (req
   res.json(db.prepare('SELECT * FROM zines WHERE id = ?').get(req.params.id));
 });
 
+// Called from success.html — records the order without needing a webhook
+app.post('/api/orders/record', async (req, res) => {
+  const { payment_intent_id } = req.body;
+  if (!payment_intent_id) return res.status(400).json({ error: 'Missing payment_intent_id' });
+
+  try {
+    const intent = await stripe.paymentIntents.retrieve(payment_intent_id);
+    if (intent.status !== 'succeeded') {
+      return res.status(400).json({ error: 'Payment not succeeded' });
+    }
+    const s = intent.shipping;
+    db.prepare(`
+      INSERT OR IGNORE INTO orders
+        (payment_intent_id, items, name, line1, line2, city, state, zip, country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      intent.id,
+      intent.description            || '',
+      s?.name                       || '',
+      s?.address?.line1             || '',
+      s?.address?.line2             || '',
+      s?.address?.city              || '',
+      s?.address?.state             || '',
+      s?.address?.postal_code       || '',
+      s?.address?.country           || ''
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Order record error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/admin/orders', requireAdmin, (req, res) => {
   const unshippedOnly = req.query.unshipped === '1';
   const rows = db.prepare(
