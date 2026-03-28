@@ -134,6 +134,14 @@ button { cursor: pointer; font: inherit; border: none; }
   color: var(--text);
   line-height: 1.6;
 }
+.body-text h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  margin: 2rem 0 .4rem;
+}
+.body-text h2:first-child { margin-top: 0; }
+.body-text p { margin: 0 0 .75rem; }
 
 /* ─── Product grid ───────────────────────────────────────────────────────── */
 .products-section {
