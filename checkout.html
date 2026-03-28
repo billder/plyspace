@@ -84,6 +84,42 @@
             </div>
           </div>
 
+          <!-- Same-address checkbox -->
+          <label class="co-same-address" style="margin-top:20px">
+            <input type="checkbox" id="same-address" checked>
+            <span>Billing address is the same as shipping</span>
+          </label>
+
+          <!-- Billing address fields (hidden by default) -->
+          <div id="billing-section" style="display:none">
+            <div class="co-field-label" style="margin-top:20px">Billing address</div>
+            <div class="co-address-fields">
+              <div class="form-group">
+                <input type="text" id="bill-name"    placeholder="Full name"        autocomplete="billing name">
+              </div>
+              <div class="form-group">
+                <input type="text" id="bill-line1"   placeholder="Address"          autocomplete="billing address-line1">
+              </div>
+              <div class="form-group">
+                <input type="text" id="bill-line2"   placeholder="Apt, suite, etc. (optional)" autocomplete="billing address-line2">
+              </div>
+              <div class="co-address-row">
+                <div class="form-group">
+                  <input type="text" id="bill-city"  placeholder="City"             autocomplete="billing address-level2">
+                </div>
+                <div class="form-group">
+                  <input type="text" id="bill-state" placeholder="State / Province" autocomplete="billing address-level1">
+                </div>
+                <div class="form-group">
+                  <input type="text" id="bill-zip"   placeholder="ZIP / Postal"     autocomplete="billing postal-code">
+                </div>
+              </div>
+              <div class="form-group">
+                <input type="text" id="bill-country" placeholder="Country (e.g. US, GB, CA)" autocomplete="billing country">
+              </div>
+            </div>
+          </div>
+
           <!-- Card details via Stripe -->
           <div class="co-field-label" style="margin-top:24px">Card details</div>
           <div id="payment-element"></div>

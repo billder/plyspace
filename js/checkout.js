@@ -152,6 +152,12 @@ function renderOrderItems() {
   `).join('');
 }
 
+// ─── Same-address checkbox ────────────────────────────────────────────────────
+
+document.getElementById('same-address').addEventListener('change', function () {
+  document.getElementById('billing-section').style.display = this.checked ? 'none' : 'block';
+});
+
 // ─── Submit payment ───────────────────────────────────────────────────────────
 
 document.getElementById('payment-form').addEventListener('submit', async e => {
@@ -159,7 +165,7 @@ document.getElementById('payment-form').addEventListener('submit', async e => {
   const btn     = document.getElementById('pay-btn');
   const errorEl = document.getElementById('payment-error');
 
-  // Collect shipping address from HTML fields
+  // Collect shipping address
   const name    = document.getElementById('ship-name').value.trim();
   const line1   = document.getElementById('ship-line1').value.trim();
   const line2   = document.getElementById('ship-line2').value.trim();
@@ -174,9 +180,27 @@ document.getElementById('payment-form').addEventListener('submit', async e => {
     return;
   }
 
+  // Collect billing address (falls back to shipping when checkbox is checked)
+  const sameAddress = document.getElementById('same-address').checked;
+  const billName    = sameAddress ? name    : document.getElementById('bill-name').value.trim();
+  const billLine1   = sameAddress ? line1   : document.getElementById('bill-line1').value.trim();
+  const billLine2   = sameAddress ? line2   : document.getElementById('bill-line2').value.trim();
+  const billCity    = sameAddress ? city    : document.getElementById('bill-city').value.trim();
+  const billState   = sameAddress ? state   : document.getElementById('bill-state').value.trim();
+  const billZip     = sameAddress ? zip     : document.getElementById('bill-zip').value.trim();
+  const billCountry = sameAddress ? country : document.getElementById('bill-country').value.trim();
+
+  if (!sameAddress && (!billName || !billLine1 || !billCity || !billZip || !billCountry)) {
+    errorEl.textContent   = 'Please fill in all required billing fields.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   btn.disabled    = true;
   btn.textContent = 'Processing…';
   errorEl.style.display = 'none';
+
+  const fmtCountry = c => c.length === 2 ? c.toUpperCase() : undefined;
 
   const { error } = await stripeInstance.confirmPayment({
     elements: elementsInstance,
@@ -190,7 +214,20 @@ document.getElementById('payment-form').addEventListener('submit', async e => {
           city,
           state:       state || undefined,
           postal_code: zip,
-          country:     country.length === 2 ? country.toUpperCase() : undefined,
+          country:     fmtCountry(country),
+        },
+      },
+      payment_method_data: {
+        billing_details: {
+          name: billName,
+          address: {
+            line1:       billLine1,
+            line2:       billLine2 || undefined,
+            city:        billCity,
+            state:       billState || undefined,
+            postal_code: billZip,
+            country:     fmtCountry(billCountry),
+          },
         },
       },
     },

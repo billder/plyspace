@@ -847,6 +847,20 @@ button { cursor: pointer; font: inherit; border: none; }
 .co-radio input[type="radio"] { accent-color: var(--accent); width: 16px; height: 16px; }
 .co-radio em { color: var(--text-muted); font-style: normal; }
 
+/* Same-address checkbox */
+.co-same-address {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .9rem;
+  background: var(--bg);
+}
+.co-same-address input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
+
 /* Shipping address fields */
 .co-address-fields { display: flex; flex-direction: column; gap: 8px; }
 
