@@ -46,6 +46,16 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS events (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    event      TEXT    NOT NULL,
+    page       TEXT    NOT NULL,
+    session_id TEXT,
+    ts         INTEGER NOT NULL DEFAULT (unixepoch())
+  )
+`);
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 // Stripe webhooks need raw body — mount before express.json()
@@ -104,6 +114,19 @@ app.get('/api/zines', (_req, res) => {
     'SELECT * FROM zines WHERE active = 1 ORDER BY created_at DESC'
   ).all();
   res.json(zines);
+});
+
+// ─── Track ────────────────────────────────────────────────────────────────────
+
+app.post('/api/track', (req, res) => {
+  const { event, page, session_id } = req.body;
+  if (!event || !page) return res.sendStatus(400);
+  db.prepare('INSERT INTO events (event, page, session_id) VALUES (?, ?, ?)').run(
+    String(event).slice(0, 64),
+    String(page).slice(0, 64),
+    session_id ? String(session_id).slice(0, 64) : null
+  );
+  res.sendStatus(200);
 });
 
 // ─── Checkout ─────────────────────────────────────────────────────────────────
@@ -454,6 +477,16 @@ app.put('/api/admin/zines/:id', requireAdmin, upload.single('cover_image'), (req
   );
 
   res.json(db.prepare('SELECT * FROM zines WHERE id = ?').get(req.params.id));
+});
+
+app.get('/api/admin/metrics', requireAdmin, (_req, res) => {
+  const rows = db.prepare(`
+    SELECT event, page, COUNT(*) AS count
+    FROM events
+    GROUP BY event, page
+    ORDER BY count DESC
+  `).all();
+  res.json(rows);
 });
 
 app.delete('/api/admin/zines/:id', requireAdmin, (req, res) => {

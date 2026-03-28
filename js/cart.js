@@ -100,6 +100,7 @@ if (new URLSearchParams(window.location.search).get('success') === 'true') {
 // Checkout
 checkoutBtn.addEventListener('click', () => {
   if (!CartStore.getItems().length) return;
+  if (typeof track === 'function') track('checkout_start', 'cart');
   window.location.href = '/checkout.html';
 });
 

@@ -8,7 +8,7 @@
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
-<body>
+<body data-page="success">
 
   <header class="site-header">
     <div class="header-inner">
@@ -30,9 +30,11 @@
   </main>
 
   <script src="/js/cart-store.js"></script>
+  <script src="/js/tracker.js"></script>
   <script>
     // Clear the cart on successful purchase
     CartStore.clear();
+    track('purchase_complete', 'success');
   </script>
 </body>
 </html>

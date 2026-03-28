@@ -92,6 +92,39 @@
         </form>
       </div>
 
+      <!-- Metrics -->
+      <div class="admin-section">
+        <h2 class="admin-section-title">Metrics</h2>
+        <div id="metrics-loading" style="color:var(--text-muted);font-size:.9rem">Loading…</div>
+        <div id="metrics-content" style="display:none">
+          <p style="font-size:.85rem;color:var(--text-muted);margin:0 0 16px">Funnel: pageviews and key actions across all time.</p>
+          <div style="overflow-x:auto">
+            <table class="zines-table" id="funnel-table">
+              <thead>
+                <tr>
+                  <th>Step</th>
+                  <th style="text-align:right">Count</th>
+                  <th style="text-align:right">Conversion</th>
+                </tr>
+              </thead>
+              <tbody id="funnel-tbody"></tbody>
+            </table>
+          </div>
+          <div style="overflow-x:auto;margin-top:24px">
+            <table class="zines-table" id="events-table">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Page</th>
+                  <th style="text-align:right">Count</th>
+                </tr>
+              </thead>
+              <tbody id="events-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Zines table -->
       <div class="admin-section">
         <h2 class="admin-section-title">All Zines</h2>

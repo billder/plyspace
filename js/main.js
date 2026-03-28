@@ -39,6 +39,7 @@ function renderCard(zine) {
 
 function addToCart(zine, card) {
   CartStore.add(zine);
+  if (typeof track === 'function') track('add_to_cart', 'index');
   const btn = card.querySelector('.btn-add');
   btn.textContent = 'Added!';
   btn.classList.add('added');
