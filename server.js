@@ -56,6 +56,23 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS orders (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    payment_intent_id TEXT    NOT NULL UNIQUE,
+    items             TEXT    NOT NULL DEFAULT '',
+    name              TEXT    NOT NULL DEFAULT '',
+    line1             TEXT    NOT NULL DEFAULT '',
+    line2             TEXT    NOT NULL DEFAULT '',
+    city              TEXT    NOT NULL DEFAULT '',
+    state             TEXT    NOT NULL DEFAULT '',
+    zip               TEXT    NOT NULL DEFAULT '',
+    country           TEXT    NOT NULL DEFAULT '',
+    shipped           INTEGER NOT NULL DEFAULT 0,
+    created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 // Stripe webhooks need raw body — mount before express.json()
@@ -388,6 +405,31 @@ app.post('/api/webhook', async (req, res) => {
 
   if (event.type === 'payment_intent.succeeded') {
     const intent = event.data.object;
+
+    // Record order
+    try {
+      const s = intent.shipping;
+      db.prepare(`
+        INSERT OR IGNORE INTO orders
+          (payment_intent_id, items, name, line1, line2, city, state, zip, country)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        intent.id,
+        intent.description || '',
+        s?.name                  || '',
+        s?.address?.line1        || '',
+        s?.address?.line2        || '',
+        s?.address?.city         || '',
+        s?.address?.state        || '',
+        s?.address?.postal_code  || '',
+        s?.address?.country      || ''
+      );
+      console.log('Order recorded:', intent.id);
+    } catch (err) {
+      console.error('Order recording error:', err.message);
+    }
+
+    // Record tax transaction
     const taxCalculationId = intent.metadata?.tax_calculation;
     if (taxCalculationId) {
       try {
@@ -477,6 +519,25 @@ app.put('/api/admin/zines/:id', requireAdmin, upload.single('cover_image'), (req
   );
 
   res.json(db.prepare('SELECT * FROM zines WHERE id = ?').get(req.params.id));
+});
+
+app.get('/api/admin/orders', requireAdmin, (req, res) => {
+  const unshippedOnly = req.query.unshipped === '1';
+  const rows = db.prepare(
+    unshippedOnly
+      ? 'SELECT * FROM orders WHERE shipped = 0 ORDER BY created_at DESC'
+      : 'SELECT * FROM orders ORDER BY created_at DESC'
+  ).all();
+  res.json(rows);
+});
+
+app.patch('/api/admin/orders/:id', requireAdmin, (req, res) => {
+  const existing = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'Order not found' });
+  db.prepare('UPDATE orders SET shipped = ? WHERE id = ?').run(
+    req.body.shipped ? 1 : 0, req.params.id
+  );
+  res.json(db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id));
 });
 
 app.get('/api/admin/metrics', requireAdmin, (_req, res) => {
