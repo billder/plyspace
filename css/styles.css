@@ -625,6 +625,28 @@ button { cursor: pointer; font: inherit; border: none; }
   border-bottom: 1px solid var(--border);
 }
 
+.admin-subnav {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+.subnav-link {
+  padding: 10px 18px;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .15s;
+}
+.subnav-link:hover { color: var(--text); }
+.subnav-link.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
 .admin-header-bar {
   display: flex;
   align-items: center;

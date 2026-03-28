@@ -55,7 +55,6 @@ function showAdmin() {
   adminView.style.display  = 'block';
   logoutBtn.style.display  = 'inline-block';
   loadZines();
-  loadMetrics();
 }
 
 loginForm.addEventListener('submit', async e => {
@@ -250,62 +249,6 @@ async function toggleActive(id, active) {
   const res = await fetch(`/api/admin/zines/${id}`, { method: 'PUT', body });
   if (res.ok) { showToast(active ? 'Zine is now visible.' : 'Zine hidden.', 'success'); loadZines(); }
   else showToast('Update failed.', 'error');
-}
-
-// ─── Metrics ──────────────────────────────────────────────────────────────────
-
-async function loadMetrics() {
-  const loadingEl = document.getElementById('metrics-loading');
-  const contentEl = document.getElementById('metrics-content');
-
-  try {
-    const res  = await fetch('/api/admin/metrics');
-    const rows = await res.json();
-
-    // Build a lookup: { 'event/page': count }
-    const counts = {};
-    rows.forEach(r => { counts[`${r.event}/${r.page}`] = r.count; });
-
-    const get = key => counts[key] || 0;
-    const base = get('pageview/index') || 1; // avoid division by zero
-    const pct  = n => base ? Math.round((n / base) * 100) + '%' : '—';
-
-    // Funnel steps
-    const funnel = [
-      { label: 'Browse (index)',    count: get('pageview/index') },
-      { label: 'Add to cart',       count: get('add_to_cart/index') },
-      { label: 'Cart',              count: get('pageview/cart') },
-      { label: 'Checkout started',  count: get('checkout_start/cart') },
-      { label: 'Checkout page',     count: get('pageview/checkout') },
-      { label: 'Purchased',         count: get('purchase_complete/success') },
-    ];
-
-    const funnelTbody = document.getElementById('funnel-tbody');
-    funnelTbody.innerHTML = funnel.map(f => `
-      <tr>
-        <td>${f.label}</td>
-        <td style="text-align:right">${f.count.toLocaleString()}</td>
-        <td style="text-align:right;color:var(--text-muted)">${pct(f.count)}</td>
-      </tr>
-    `).join('');
-
-    // All other events (raw)
-    const eventsTbody = document.getElementById('events-tbody');
-    eventsTbody.innerHTML = rows.length
-      ? rows.map(r => `
-          <tr>
-            <td>${r.event}</td>
-            <td>${r.page}</td>
-            <td style="text-align:right">${r.count.toLocaleString()}</td>
-          </tr>
-        `).join('')
-      : '<tr><td colspan="3" style="color:var(--text-muted)">No events yet.</td></tr>';
-
-    loadingEl.style.display = 'none';
-    contentEl.style.display = 'block';
-  } catch {
-    loadingEl.textContent = 'Failed to load metrics.';
-  }
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
