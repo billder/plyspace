@@ -29,7 +29,7 @@ if (DATA_DIR !== __dirname && !fs.existsSync(volumeDb) && fs.existsSync(bundledD
 const db = new Database(path.join(DATA_DIR, 'zines.db'));
 // Add details column to existing databases that pre-date this field
 try {
-  db.exec(`ALTER TABLE zines ADD COLUMN details TEXT NOT NULL DEFAULT '20 pages, 4x5, all color, nice paper'`);
+  db.exec(`ALTER TABLE zines ADD COLUMN details TEXT NOT NULL DEFAULT '20 pages, 4×5, nice paper, all color'`);
 } catch (_) { /* column already exists */ }
 
 db.exec(`
@@ -37,7 +37,7 @@ db.exec(`
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
     title       TEXT    NOT NULL,
     description TEXT    NOT NULL DEFAULT '',
-    details     TEXT    NOT NULL DEFAULT '20 pages, 4x5, all color, nice paper',
+    details     TEXT    NOT NULL DEFAULT '20 pages, 4×5, nice paper, all color',
     price       REAL    NOT NULL,
     cover_image TEXT    NOT NULL DEFAULT '',
     stock       INTEGER NOT NULL DEFAULT -1,
@@ -421,7 +421,7 @@ app.post('/api/admin/zines', requireAdmin, upload.single('cover_image'), (req, r
   `).run(
     title.trim(),
     (description || '').trim(),
-    (details !== undefined ? details : '20 pages, 4x5, all color, nice paper').trim(),
+    (details !== undefined ? details : '20 pages, 4×5, nice paper, all color').trim(),
     parseFloat(price),
     coverImage,
     stock !== undefined && stock !== '' ? parseInt(stock, 10) : -1
