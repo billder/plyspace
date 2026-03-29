@@ -21,7 +21,9 @@ function renderCard(zine) {
     ? `<img src="${zine.cover_image}" alt="${escHtml(zine.title)} cover" loading="lazy">`
     : placeholderSvg();
 
-  const isNew = zine.created_at &&
+  const LEGACY_IDS = [1, 2];
+  const isNew = !LEGACY_IDS.includes(zine.id) &&
+    zine.created_at &&
     (Date.now() - new Date(zine.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000;
 
   card.innerHTML = `
