@@ -21,10 +21,16 @@ function renderCard(zine) {
     ? `<img src="${zine.cover_image}" alt="${escHtml(zine.title)} cover" loading="lazy">`
     : placeholderSvg();
 
+  const isNew = zine.created_at &&
+    (Date.now() - new Date(zine.created_at).getTime()) < 30 * 24 * 60 * 60 * 1000;
+
   card.innerHTML = `
     <div class="card-image">${imgHtml}</div>
     <div class="card-body">
-      <div class="card-title">${escHtml(zine.title)}</div>
+      <div class="card-title-row">
+        <div class="card-title">${escHtml(zine.title)}</div>
+        ${isNew ? `<span class="card-new-badge">NEW</span>` : ''}
+      </div>
       ${zine.description ? `<div class="card-desc">${escHtml(zine.description)}</div>` : ''}
       ${zine.details ? `<div class="card-details">${escHtml(zine.details)}</div>` : ''}
     </div>
